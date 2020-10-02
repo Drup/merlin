@@ -187,10 +187,12 @@ exception Cannot_apply
 
 (**** Type level management ****)
 
-let current_level = ref 0
-let nongen_level = ref 0
-let global_level = ref 1
-let saved_level = ref []
+open Local_store.Compiler
+
+let current_level = srefk 0
+let nongen_level = srefk 0
+let global_level = srefk 1
+let saved_level = srefk []
 
 type levels =
     { current_level: int; nongen_level: int; global_level: int;
