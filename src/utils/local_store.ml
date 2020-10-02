@@ -22,9 +22,8 @@ let ref t f =
   t.refs <- (F (result, f)) :: t.refs;
   result
 
-type 'a slot = { ref : 'a ref; mutable value : 'a }
-type a_slot = Slot : 'a slot -> a_slot
-type scope = { slots: a_slot list; scope_bound : bool ref }
+type slot = Slot : { ref : 'a ref; mutable value : 'a } -> slot
+type scope = { slots: slot list; scope_bound : bool ref }
 
 let fresh t =
   t.frozen <- true;
