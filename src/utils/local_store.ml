@@ -31,25 +31,14 @@ let fresh t =
   { slots = List.map ~f:(fun (F(ref,f)) -> Slot {ref; value = f ()}) t.refs;
     scope_bound = t.is_bound }
 
-type ref_and_value = V : 'a ref * 'a -> ref_and_value
-let restore l = List.iter ~f:(fun (V(r,v)) -> r := v) l
-
 let with_scope { slots; scope_bound } f =
   assert (not !scope_bound);
   scope_bound := true;
-  let backup = List.rev_map ~f:(fun (Slot {ref;_}) -> V (ref,!ref)) slots in
   List.iter ~f:(fun (Slot {ref;value}) -> ref := value) slots;
-  match f () with
-  | x ->
+  Fun.protect f ~finally:(fun () ->
     List.iter ~f:(fun (Slot s) -> s.value <- !(s.ref)) slots;
-    scope_bound := false;
-    restore backup;
-    x
-  | exception exn ->
-    List.iter ~f:(fun (Slot s) -> s.value <- !(s.ref)) slots;
-    scope_bound := false;
-    restore backup;
-    reraise exn
+    scope_bound := false
+  )
 
 module Compiler = struct
   let compiler_state = new_bindings ()
